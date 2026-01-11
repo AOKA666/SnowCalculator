@@ -1,0 +1,27 @@
+{
+  "name": "Snow Day Calculator - School Closure Predictions",
+  "short_name": "Snow Day Calc",
+  "description": "Check your snow day probability based on weather forecasts",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f4fc",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/calcicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/calcicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["weather", "education", "utilities"],
+  "lang": "en",
+  "dir": "ltr"
+}
