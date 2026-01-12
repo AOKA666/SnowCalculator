@@ -24,6 +24,16 @@ type ForecastResponse = {
   }>
 }
 
+type DaySummary = {
+  label: "Today" | "Tomorrow"
+  minTempC: number
+  maxTempC: number
+  snowCm: number
+  popPct: number
+  condition: string
+  windMph: number
+}
+
 function clamp(value: number, min: number, max: number) {
   if (Number.isNaN(value)) return min
   return Math.min(max, Math.max(min, value))
@@ -55,6 +65,64 @@ function windLabelFromMps(speedMps: number | undefined) {
   const label =
     mph < 10 ? "Light" : mph < 20 ? "Moderate" : mph < 30 ? "Strong" : mph < 40 ? "Very strong" : "Severe"
   return { label, mph }
+}
+
+function isLikelyZipQuery(value: string) {
+  const normalized = value.replace(/\s+/g, "")
+  if (!normalized) return false
+  return /^[0-9]{3,10}$/.test(normalized)
+}
+
+function pickDominantCondition(slots: ForecastResponse["list"]) {
+  const counts = new Map<string, number>()
+  for (const slot of slots) {
+    for (const w of slot.weather ?? []) {
+      if (!w?.main) continue
+      counts.set(w.main, (counts.get(w.main) ?? 0) + 1)
+    }
+  }
+  if (!counts.size) return "Clear"
+  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Clear"
+}
+
+function summarizeDay(
+  label: DaySummary["label"],
+  startMs: number,
+  endMs: number,
+  offsetMs: number,
+  list: ForecastResponse["list"],
+): DaySummary | null {
+  const slots = list.filter((slot) => {
+    const localSlotMs = slot.dt * 1000 + offsetMs
+    return localSlotMs >= startMs && localSlotMs < endMs
+  })
+
+  if (!slots.length) return null
+
+  const temps = slots
+    .map((slot) => slot.main?.temp)
+    .filter((t): t is number => typeof t === "number")
+  const minTempC = temps.length ? Math.min(...temps) : Number.POSITIVE_INFINITY
+  const maxTempC = temps.length ? Math.max(...temps) : Number.NEGATIVE_INFINITY
+
+  const snowCm = Number(
+    (
+      slots.reduce((sum, slot) => sum + (slot.snow?.["3h"] ?? 0), 0) / 10
+    ).toFixed(1),
+  )
+  const popPct = Math.round(Math.max(...slots.map((slot) => slot.pop ?? 0)) * 100)
+  const condition = pickDominantCondition(slots)
+  const wind = windLabelFromMps(Math.max(...slots.map((slot) => slot.wind?.speed ?? 0)))
+
+  return {
+    label,
+    minTempC: Number.isFinite(minTempC) ? Math.round(minTempC) : 0,
+    maxTempC: Number.isFinite(maxTempC) ? Math.round(maxTempC) : 0,
+    snowCm,
+    popPct,
+    condition,
+    windMph: Math.round(wind.mph),
+  }
 }
 
 const UPSTREAM_TIMEOUT_MS = 25_000
@@ -337,19 +405,34 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url)
-  const city = (searchParams.get("city") ?? "").trim()
-  const zip = (searchParams.get("zip") ?? "").trim()
+  const rawQuery = (searchParams.get("query") ?? searchParams.get("q") ?? "").trim()
+  const cityParam = (searchParams.get("city") ?? "").trim()
+  const zipParam = (searchParams.get("zip") ?? "").trim()
   const country = (searchParams.get("country") ?? "US").trim() || "US"
   const readiness = (searchParams.get("readiness") ?? "medium").trim().toLowerCase()
 
+  let city = cityParam
+  let zip = zipParam
+
+  if (rawQuery) {
+    if (isLikelyZipQuery(rawQuery)) {
+      zip = rawQuery.replace(/\s+/g, "")
+      city = ""
+    } else {
+      city = rawQuery
+      zip = ""
+    }
+  }
+
   if (!city && !zip) {
-    return NextResponse.json({ error: "Provide at least one of: city, zip." }, { status: 400 })
+    return NextResponse.json({ error: "Provide at least one of: query, city, zip." }, { status: 400 })
   }
 
   const readinessFactor = readiness === "high" ? 0.75 : readiness === "low" ? 1.25 : 1.0
   const readinessLabel = readiness === "high" ? "High" : readiness === "low" ? "Low" : "Medium"
 
-  const locationKey = `${zip ? `zip:${zip},${country}` : `city:${city},${country}`}`
+  const cityKey = city ? (city.includes(",") ? city : `${city},${country}`) : ""
+  const locationKey = `${zip ? `zip:${zip},${country}` : `city:${cityKey}`}`
   const cacheKey = `${locationKey}|readiness:${readinessLabel}`
   const cached = responseCache.get(cacheKey)
   if (cached && cached.expiresAtMs > Date.now()) {
@@ -374,8 +457,8 @@ export async function GET(req: NextRequest) {
       forecastUrl.searchParams.set("q", q)
     }
     forecastUrl.searchParams.set("units", "metric")
-    // Reduce payload (16 * 3h = 48h), still covers "tomorrow" in local time.
-    forecastUrl.searchParams.set("cnt", "16")
+    // Get more data points (24 * 3h = 72h) to ensure we have full today + tomorrow data
+    forecastUrl.searchParams.set("cnt", "24")
     forecastUrl.searchParams.set("appid", OPENWEATHER_API_KEY)
 
     const forecastRes = await getForecastCached(locationKey, forecastUrl)
@@ -401,6 +484,14 @@ export async function GET(req: NextRequest) {
   const localNowMs = Date.now() + offsetMs
   const localTomorrowStartMs = startOfLocalDayMs(localNowMs) + 24 * 60 * 60 * 1000
   const localTomorrowEndMs = localTomorrowStartMs + 24 * 60 * 60 * 1000
+
+  const localTodayStartMs = startOfLocalDayMs(localNowMs)
+  // For today, use all data from today start to tomorrow start (even if partial, since we don't have historical data)
+  const todaySummary = summarizeDay("Today", localTodayStartMs, localTomorrowStartMs, offsetMs, forecastJson.list)
+  const tomorrowSummary = summarizeDay("Tomorrow", localTomorrowStartMs, localTomorrowEndMs, offsetMs, forecastJson.list)
+
+  // Include both today and tomorrow if they have data
+  const dailyWeather = [todaySummary, tomorrowSummary].filter((d): d is DaySummary => d !== null)
 
   const tomorrowSlots = forecastJson.list.filter((slot) => {
     const localSlotMs = slot.dt * 1000 + offsetMs
@@ -522,6 +613,7 @@ export async function GET(req: NextRequest) {
     probability: Math.round(probability),
     location: resolvedLabel,
     factors,
+    dailyWeather,
   }
 
   // Cache for a short time to speed up repeated queries.

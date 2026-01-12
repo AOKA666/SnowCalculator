@@ -5,13 +5,22 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Snowflake, MapPin, Hash, Twitter, CloudSnow, AlertTriangle, HelpCircle, Info } from "lucide-react"
+import { Snowflake, MapPin, Twitter, CloudSnow, AlertTriangle, HelpCircle, Info, Wind, Droplets } from "lucide-react"
 
 type Readiness = "high" | "medium" | "low"
+type DayWeather = {
+  label: string
+  minTempC: number
+  maxTempC: number
+  snowCm: number
+  popPct: number
+  condition: string
+  windMph: number
+}
 
 export function SnowDayCalculator() {
-  const [city, setCity] = useState("")
-  const [zip, setZip] = useState("")
+  const [query, setQuery] = useState("")
+  const [country, setCountry] = useState("US")
   const [readiness, setReadiness] = useState<Readiness>("medium")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -19,14 +28,14 @@ export function SnowDayCalculator() {
     probability: number
     location: string
     factors: Array<{ label: string; value: string }>
+    dailyWeather?: DayWeather[]
   } | null>(null)
 
   const handleCheck = async () => {
-    const cityValue = city.trim()
-    const zipValue = zip.trim()
+    const queryValue = query.trim()
 
-    if (!cityValue && !zipValue) {
-      alert("Please enter a city name and/or ZIP code")
+    if (!queryValue) {
+      alert("Please enter a city name or ZIP code")
       return
     }
 
@@ -35,8 +44,8 @@ export function SnowDayCalculator() {
 
     try {
       const params = new URLSearchParams()
-      if (cityValue) params.set("city", cityValue)
-      if (zipValue) params.set("zip", zipValue)
+      params.set("query", queryValue)
+      if (country) params.set("country", country)
       params.set("readiness", readiness)
 
       const res = await fetch(`/api/snow-probability?${params.toString()}`, { cache: "no-store" })
@@ -56,7 +65,7 @@ export function SnowDayCalculator() {
         return
       }
 
-      const okJson = json as { probability?: unknown; location?: unknown; factors?: unknown }
+      const okJson = json as { probability?: unknown; location?: unknown; factors?: unknown; dailyWeather?: unknown }
       if (
         typeof okJson.probability !== "number" ||
         typeof okJson.location !== "string" ||
@@ -66,10 +75,16 @@ export function SnowDayCalculator() {
         return
       }
 
+      const dayWeather =
+        Array.isArray(okJson.dailyWeather) && okJson.dailyWeather.every((d) => typeof d === "object" && d !== null)
+          ? (okJson.dailyWeather as DayWeather[])
+          : []
+
       setResult({
         probability: okJson.probability,
         location: okJson.location,
         factors: okJson.factors as Array<{ label: string; value: string }>,
+        dailyWeather: dayWeather,
       })
     } catch (e) {
       setError(e instanceof Error ? e.message : "Request failed.")
@@ -87,8 +102,8 @@ export function SnowDayCalculator() {
 
   const handleCheckAnother = () => {
     setResult(null)
-    setCity("")
-    setZip("")
+    setQuery("")
+    setCountry("US")
     setReadiness("medium")
     setError(null)
   }
@@ -113,6 +128,36 @@ export function SnowDayCalculator() {
               </div>
             </div>
           </div>
+
+          {result.dailyWeather?.length ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {result.dailyWeather.map((day) => (
+                <Card key={day.label} className="p-5 bg-card/80 border border-border/60">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">{day.label}</p>
+                      <p className="text-2xl font-semibold text-foreground">
+                        {Math.round(day.maxTempC)}° / {Math.round(day.minTempC)}°C
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {day.condition} · Precip {day.popPct}%
+                      </p>
+                    </div>
+                    <div className="space-y-2 text-right text-sm text-muted-foreground">
+                      <div className="flex items-center justify-end gap-2">
+                        <Droplets className="w-4 h-4" />
+                        <span>{day.snowCm.toFixed(1)} cm snow</span>
+                      </div>
+                      <div className="flex items-center justify-end gap-2">
+                        <Wind className="w-4 h-4" />
+                        <span>{Math.round(day.windMph)} mph wind</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : null}
 
           {/* Factors Card */}
           <Card className="p-6 md:p-8 space-y-4 bg-card">
@@ -178,43 +223,24 @@ export function SnowDayCalculator() {
           <Card className="p-8 bg-card shadow-lg">
             <div className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="city" className="text-sm font-medium text-muted-foreground block text-left">
-                  Enter city name and/or ZIP
+                <label htmlFor="location" className="text-sm font-medium text-muted-foreground block text-left">
+                  Enter city or ZIP code
                 </label>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="city"
-                      type="text"
-                      placeholder="City (e.g., New York)"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key !== "Enter") return
-                        e.preventDefault()
-                        handleCheck()
-                      }}
-                      className="pl-10 h-14 text-lg"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="zip"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="ZIP (e.g., 10001)"
-                      value={zip}
-                      onChange={(e) => setZip(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key !== "Enter") return
-                        e.preventDefault()
-                        handleCheck()
-                      }}
-                      className="pl-10 h-14 text-lg"
-                    />
-                  </div>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="location"
+                    type="text"
+                    placeholder='Try "Boston" or "84130"'
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return
+                      e.preventDefault()
+                      handleCheck()
+                    }}
+                    className="pl-10 h-14 text-lg"
+                  />
                 </div>
               </div>
 
