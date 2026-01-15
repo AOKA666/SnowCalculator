@@ -215,7 +215,7 @@ export function SnowDayCalculator() {
               Will School Be Closed Tomorrow?
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-xl mx-auto">
-              Estimate your school closure probability based on weather forecasts.
+              Snow Day School Closure Predictor.
             </p>
           </div>
 
@@ -278,9 +278,9 @@ export function SnowDayCalculator() {
           <div className="pt-8 space-y-3">
             <p className="text-sm font-medium text-muted-foreground">Recent predictions:</p>
             <div className="flex flex-wrap justify-center gap-3">
-              <div className="px-4 py-2 rounded-full bg-primary/5 text-sm text-foreground">Boston: 72%</div>
-              <div className="px-4 py-2 rounded-full bg-primary/5 text-sm text-foreground">Chicago: 61%</div>
-              <div className="px-4 py-2 rounded-full bg-primary/5 text-sm text-foreground">Denver: 68%</div>
+              <div className="px-4 py-2 rounded-full bg-primary/5 text-sm text-foreground">Boston: 3%</div>
+              <div className="px-4 py-2 rounded-full bg-primary/5 text-sm text-foreground">Chicago: 2%</div>
+              <div className="px-4 py-2 rounded-full bg-primary/5 text-sm text-foreground">Denver: 2%</div>
             </div>
           </div>
         </div>

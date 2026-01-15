@@ -1,14 +1,18 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from "next"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.willschoolbeclosed.online' // 请替换为你的实际域名
-
-  return [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1,
-    },
+  const baseUrl = "https://snowday-calc.vercel.app"
+  const routes = [
+    { path: "", changeFrequency: "daily", priority: 1 },
+    { path: "/city", changeFrequency: "weekly", priority: 0.8 },
+    { path: "/blog", changeFrequency: "weekly", priority: 0.7 },
+    { path: "/faq", changeFrequency: "weekly", priority: 0.7 },
   ]
+
+  return routes.map((route) => ({
+    url: `${baseUrl}${route.path}`,
+    lastModified: new Date(),
+    changeFrequency: route.changeFrequency as MetadataRoute.SitemapChangeFrequency,
+    priority: route.priority,
+  }))
 }

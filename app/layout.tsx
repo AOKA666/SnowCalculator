@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
+import Link from "next/link"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Analytics } from "@vercel/analytics/next"
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     template: "%s | Snow Day Calculator",
   },
   description:
-    "Check your snow day probability based on weather forecasts. Accurate predictions for school closures across the United States. Enter your ZIP code or city to get instant results.",
+    "Check the probability of school closures tomorrow due to snow, ice, or extreme weather. Get accurate snow day predictions by city in seconds.",
   keywords: [
     "snow day calculator",
     "snow day predictor",
@@ -72,7 +73,40 @@ export const metadata: Metadata = {
     apple: "/calcicon.png",
   },
   manifest: "/manifest.json",
-    generator: 'v0.app'
+  generator: "v0.app",
+}
+
+const navLinks = [
+  { href: "/", label: "Calculator" },
+  { href: "/city", label: "City" },
+  { href: "/blog", label: "Blog" },
+  { href: "/faq", label: "FAQ" },
+]
+
+function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+        <Link
+          href="/"
+          className="text-lg font-semibold text-foreground/90 transition hover:text-foreground"
+        >
+          Snow Day Calculator
+        </Link>
+        <nav className="flex flex-wrap items-center gap-3 text-sm font-medium text-muted-foreground">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="rounded-full px-3 py-1 transition hover:bg-primary/10 hover:text-primary"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+    </header>
+  )
 }
 
 export default function RootLayout({
@@ -143,6 +177,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         />
       </head>
       <body className={inter.className}>
+        <SiteHeader />
+
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
@@ -154,7 +190,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </noscript>
         {/* End Google Tag Manager (noscript) */}
 
-        <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+        <Suspense fallback={<div>Loading...</div>}>
+          <main className="min-h-screen pt-20">{children}</main>
+        </Suspense>
         <Analytics />
       </body>
     </html>
