@@ -279,7 +279,7 @@ export function SnowDayCalculator() {
             <p className="text-sm font-medium text-muted-foreground">Recent predictions:</p>
             <div className="flex flex-wrap justify-center gap-3">
               <div className="px-4 py-2 rounded-full bg-primary/5 text-sm text-foreground">Boston: 3%</div>
-              <div className="px-4 py-2 rounded-full bg-primary/5 text-sm text-foreground">Chicago: 2%</div>
+              <div className="px-4 py-2 rounded-full bg-primary/5 text-sm text-foreground">Ohio: 5%</div>
               <div className="px-4 py-2 rounded-full bg-primary/5 text-sm text-foreground">Denver: 2%</div>
             </div>
           </div>

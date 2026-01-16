@@ -7,7 +7,7 @@ import { cityProfiles } from "@/data/city-data"
 export const metadata: Metadata = {
   title: "City Snow Day Forecasts | Snow Day Calculator",
   description:
-    "Browse snow day forecasts for Chicago, Boston, and Denver in one place. Learn how cities decide on school closures and what conditions trigger a snow day.",
+    "Browse snow day forecasts for Ohio, Boston, and Denver in one place. Learn how cities decide on school closures and what conditions trigger a snow day.",
 }
 
 export default function CityPage() {
@@ -23,7 +23,7 @@ export default function CityPage() {
         <header className="space-y-4">
           <p className="text-sm font-semibold uppercase tracking-[0.4em] text-primary">City Forecasts</p>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-            Will schools be closed tomorrow in Chicago, Boston, or Denver?
+            Will schools be closed tomorrow in Ohio, Boston, or Denver?
           </h1>
           <p className="text-lg text-muted-foreground">
             This hub gives you a single view of the three city forecasts, highlighting the weather sparks that each school

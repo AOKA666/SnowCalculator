@@ -13,43 +13,43 @@ export type CityProfile = {
 
 export const cityProfiles: CityProfile[] = [
   {
-    name: "Chicago",
-    slug: "chicago-school-closure",
+    name: "Ohio",
+    slug: "ohio-school-closure",
     intro:
-      "Chicago families know the impact of lake-effect snow, rush-hour traffic, and midwest wind chills. This page captures what school officials watch when a winter storm approaches the Windy City.",
+      "Ohio families know the impact of lake-effect snow from Lake Erie, icy morning commutes, and rapid temperature shifts. This page captures what school officials watch when a winter storm approaches the Buckeye State.",
     whyHighlights: [
-      "Lake Michigan often feeds quick snowbands that dump several inches during overnight hours.",
-      "Chicago Public Schools coordinate with CTA and Metra crews to keep morning rush-hour routes safe.",
-      "Wind chills below zero can freeze bus air lines and make street crossings dangerous, so crews act early.",
+      "Lake Erie often feeds lake-effect snowbands that can dump over a foot of snow in narrow bands across northern Ohio.",
+      "Ohio districts coordinate with ODOT and local plow crews to clear highways and residential streets before buses roll out.",
+      "Wind chills below zero can freeze bus engines and make walking to bus stops dangerous, so districts act early.",
     ],
     snowThresholds: [
-      { range: "2-4 inches", impact: "Districts stay alert but usually stay open unless the snow is wet and heavy." },
-      { range: "4-6 inches", impact: "Closures become more likely if the snow arrives before daybreak and creates slick roads." },
+      { range: "2-4 inches", impact: "Districts stay alert but usually stay open unless snow falls during the morning commute." },
+      { range: "4-6 inches", impact: "Closures become more likely if snow arrives overnight and temperatures stay below freezing." },
       {
         range: "6+ inches",
-        impact: "Most districts make the call to cancel once snow accumulation exceeds six inches with strong winds.",
+        impact: "Most districts make the call to cancel once snow accumulation exceeds six inches, especially with strong winds.",
       },
     ],
     decisionWindow:
-      "Chicago school districts generally announce closures between 4:30 and 6:30 AM to give families time before the commute.",
+      "Ohio school districts generally announce closures between 5:00 and 6:30 AM to give families time before the commute.",
     currentChance: 2,
     statusLabel: "Lake-effect snow bands moving inland",
     trend: "Crews keep a close watch on overnight squalls and subzero wind chills before declaring closures.",
     faq: [
       {
-        question: "How much does lake-effect snow influence Chicago school closures?",
+        question: "How much does lake-effect snow influence Ohio school closures?",
         answer:
-          "It drives the decisions. A narrow band can drop heavy snow on the city while suburbs stay clear, so districts watch radar and forecasts closely.",
+          "It drives the decisions, especially in northern Ohio near Lake Erie. A narrow band can drop heavy snow while areas 10 miles away stay clear.",
       },
       {
-        question: "Do CTA train conditions change the closure decision?",
+        question: "Do road conditions change the closure decision?",
         answer:
-          "Yes. If rapid transit or commuter rails stop, school transportation becomes unreliable and closures are more likely.",
+          "Yes. If ODOT closes highways or residential streets remain untreated, school transportation becomes unreliable and closures are more likely.",
       },
       {
         question: "Will schools close if the snowfall stops before sunrise?",
         answer:
-          "They might, especially if temperatures stay below freezing and treat crews cannot keep up with plows.",
+          "They might, especially if temperatures stay below freezing and treat crews cannot keep up with plows on secondary roads.",
       },
     ],
   },
