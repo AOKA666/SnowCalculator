@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://snowday-calc.vercel.app"
+  const baseUrl = "https://www.willschoolbeclosed.online/"
   const routes = [
     { path: "", changeFrequency: "daily", priority: 1 },
     { path: "/city", changeFrequency: "weekly", priority: 0.8 },
