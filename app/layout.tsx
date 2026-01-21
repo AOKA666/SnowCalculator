@@ -129,6 +129,22 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         />
         {/* End Google Tag Manager */}
 
+        {/* Google Analytics */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-H057T8E0PC"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-H057T8E0PC');`,
+          }}
+        />
+        {/* End Google Analytics */}
+
         {/* Hreflang tags for multilingual SEO */}
         {/* Removed hreflang tags as they are not needed for snow day calculator */}
 
